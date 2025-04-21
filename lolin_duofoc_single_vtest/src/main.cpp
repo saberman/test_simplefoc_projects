@@ -6,12 +6,17 @@ MKS DUAL FOC 闭环速度控制例程 测试库：SimpleFOC 2.1.1 测试硬件�
 程序默认设置的供电电压为 12V,用其他电压供电请记得修改 voltage_power_supply , voltage_limit 变量中的值
 默认PID针对的电机是 2804云台电机 ，使用自己的电机需要修改PID参数，才能实现更好效果
  */
+/*This file is adapted from the SimpleFOC library for Lolin32 Lite, and MKS Dual FOC V3.3*/
 #include <SimpleFOC.h>
 
-MagneticSensorI2C sensor = MagneticSensorI2C(AS5600_I2C);
+//MagneticSensorI2C sensor = MagneticSensorI2C(AS5600_I2C);
 //MagneticSensorI2C sensor1 = MagneticSensorI2C(AS5600_I2C);
-TwoWire I2Cone = TwoWire(0);
-//TwoWire I2Ctwo = TwoWire(1);
+
+//For Esp Lolin32 Lite GPIOs: MISO = 19, MOSI = 23, SS = 5, CLK = 18
+MagneticSensorSPI sensor = MagneticSensorSPI(AS5147_SPI, 5);
+
+TwoWire I2Cone;
+TwoWire I2Ctwo;
 
 //电机参数
 BLDCMotor motor = BLDCMotor(7);                           //在使用其他电机时，要根据电机的极对数，修改BLDMotor()中的值
@@ -25,17 +30,29 @@ float target_velocity = 0;                                          //在串口�
 Commander command = Commander(Serial);                              //比如让两个电机都以 10rad/s 的速度转动，则输入：T10
 void doTarget(char* cmd) { command.scalar(&target_velocity, cmd); }
 
+void initSensor5147() {
+  sensor.init();
+}
 
+void initSensorAS5600() {
+  I2Cone = TwoWire(0); 
+  I2Cone.begin(19, 18, 400000); 
+  sensor.init(&I2Cone);
+
+  // I2Ctwo = TwoWire(1);
+  // I2Ctwo.begin(23, 5, 400000);  
+  // sensor1.init(&I2Ctwo);
+}
 
 void setup() {
   Serial.begin(115200);
   //SimpleFOCDebug::enable(&Serial);
   //motor.useMonitoring(Serial);
 
-  I2Cone.begin(19, 18, 400000); 
-  //I2Ctwo.begin(23, 5, 400000);
-  sensor.init(&I2Cone); 
-  //sensor1.init(&I2Ctwo);
+
+  // initSensorAS5600();
+  initSensor5147(); 
+
   //连接motor对象与传感器对象 
   motor.linkSensor(&sensor);
   //motor1.linkSensor(&sensor1);
@@ -74,7 +91,7 @@ void setup() {
   //motor1.LPF_velocity.Tf = 0.01;
 
   //设置最大速度限制
-  motor.velocity_limit = 40;
+  motor.velocity_limit = 200;
   //motor1.velocity_limit = 40;
 
   // Serial.begin(115200);
