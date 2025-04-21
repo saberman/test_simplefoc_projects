@@ -15,8 +15,8 @@ MKS DUAL FOC 闭环速度控制例程 测试库：SimpleFOC 2.1.1 测试硬件�
 //For Esp Lolin32 Lite GPIOs: MISO = 19, MOSI = 23, SS = 5, CLK = 18
 MagneticSensorSPI sensor = MagneticSensorSPI(AS5147_SPI, 5);
 
-TwoWire I2Cone;
-TwoWire I2Ctwo;
+TwoWire I2Cone = TwoWire(0);
+TwoWire I2Ctwo = TwoWire(1);
 
 //电机参数
 BLDCMotor motor = BLDCMotor(7);                           //在使用其他电机时，要根据电机的极对数，修改BLDMotor()中的值
@@ -34,14 +34,9 @@ void initSensor5147() {
   sensor.init();
 }
 
-void initSensorAS5600() {
-  I2Cone = TwoWire(0); 
-  I2Cone.begin(19, 18, 400000); 
-  sensor.init(&I2Cone);
-
-  // I2Ctwo = TwoWire(1);
-  // I2Ctwo.begin(23, 5, 400000);  
-  // sensor1.init(&I2Ctwo);
+void initSensorAS5600(MagneticSensorI2C &ssensor, TwoWire *i2c, int sdaPin, int sclPin) {
+  i2c->begin(sdaPin, sclPin, 400000); 
+  ssensor.init(i2c);
 }
 
 void setup() {
@@ -49,8 +44,8 @@ void setup() {
   //SimpleFOCDebug::enable(&Serial);
   //motor.useMonitoring(Serial);
 
-
-  // initSensorAS5600();
+  //initSensorAS5600(sensor， &I2Cone, 19, 18);
+  //initSensorAS5600(sensor， &I2Ctwo, 23, 5);
   initSensor5147(); 
 
   //连接motor对象与传感器对象 
