@@ -30,6 +30,31 @@ float target_velocity = 0;                                          //在串口�
 Commander command = Commander(Serial);                              //比如让两个电机都以 10rad/s 的速度转动，则输入：T10
 void doTarget(char* cmd) { command.scalar(&target_velocity, cmd); }
 
+
+void commonMotorSet() {
+  //速度PI环设置
+  motor.PID_velocity.P = 0.5;
+  //motor1.PID_velocity.P = 0.1;
+  motor.PID_velocity.I = 20;
+ // motor1.PID_velocity.I = 1;
+  motor.PID_velocity.D = 0.01;
+  //motor1.PID_velocity.D = 0;
+  //最大电机限制电机
+  motor.voltage_limit = 1;                   //在使用其他供电电压时，修改此处voltage_limit的值
+  //motor1.voltage_limit = 12;                  //同样修改此处voltage_limit的值
+  motor.PID_velocity.output_ramp = 1000;
+  //速度低通滤波时间常数
+  motor.LPF_velocity.Tf = 0.01f;
+  //motor1.LPF_velocity.Tf = 0.01;
+
+  motor.phase_resistance = 1;
+
+  //设置最大速度限制
+  motor.velocity_limit = 200;
+  //motor1.velocity_limit = 40;
+}
+
+
 void initSensor5147() {
   sensor.init();
 }
@@ -71,23 +96,7 @@ void setup() {
 
 
   //速度PI环设置
-  motor.PID_velocity.P = 0.1f;
-  //motor1.PID_velocity.P = 0.1;
-  motor.PID_velocity.I = 1;
- // motor1.PID_velocity.I = 1;
-  motor.PID_velocity.D = 0;
-  //motor1.PID_velocity.D = 0;
-  //最大电机限制电机
-  motor.voltage_limit = 1;                   //在使用其他供电电压时，修改此处voltage_limit的值
-  //motor1.voltage_limit = 12;                  //同样修改此处voltage_limit的值
-  motor.PID_velocity.output_ramp = 1000;
-  //速度低通滤波时间常数
-  motor.LPF_velocity.Tf = 0.01f;
-  //motor1.LPF_velocity.Tf = 0.01;
-
-  //设置最大速度限制
-  motor.velocity_limit = 200;
-  //motor1.velocity_limit = 40;
+  commonMotorSet();
 
   // Serial.begin(115200);
    //motor.useMonitoring(Serial);
@@ -127,3 +136,5 @@ void loop() {
 
   command.run();
 }
+
+
